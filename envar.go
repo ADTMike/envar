@@ -2,7 +2,6 @@ package envar
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -31,8 +30,7 @@ func Bind(i interface{}, rPath ...string) error {
 
 		// Set the path to the default .env file in the specified directory
 		defaultEnvPath := filepath.Join(defaultDir, ".env")
-		wg.Add(1)
-		go load(defaultEnvPath, loadedVars, &wg, Ce)
+		load(defaultEnvPath, loadedVars, nil, Ce)
 	}
 
 	// If file paths are provided, load the corresponding .env files concurrently
@@ -52,12 +50,7 @@ func Bind(i interface{}, rPath ...string) error {
 
 	// If any critical errors were found, return them
 	if len(errors) > 0 {
-
-		for _, err := range errors {
-			log.Println(err)
-		}
-		// Return the last error encountered
-		return errors[len(errors)-1]
+		return errors[0]
 	}
 
 	// Reflect on the struct to get the fields and their tags
@@ -75,13 +68,9 @@ func Bind(i interface{}, rPath ...string) error {
 			if field.CanSet() {
 				err := convert(envValue, field)
 				if err != nil {
-					log.Printf("Warning: Could not convert env variable %s to field type: %v", tag, err)
+					return err
 				}
-			} else {
-				log.Printf("Warning: Field %s cannot be set (maybe it's unexported)", tag)
 			}
-		} else {
-			log.Printf("Warning: Environment variable %s not found", tag)
 		}
 	}
 

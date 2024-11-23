@@ -3,7 +3,6 @@ package envar
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -19,7 +18,7 @@ func load(filePath string, loadedVars map[string]bool, wg *sync.WaitGroup, ce ch
 	// Check if the file exists before proceeding
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		// Log a warning but don't stop execution
-		log.Printf("Warning: .env file not found: %s", filePath)
+		ce <- fmt.Errorf("Error .env file not found: %s", filePath)
 		return
 	}
 
